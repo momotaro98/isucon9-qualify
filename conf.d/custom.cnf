@@ -1,0 +1,16 @@
+[mysqld]
+# For slow query
+slow_query_log=ON
+long_query_time = 0
+slow_query_log_file = /tmp/mysql-slow.sql
+
+# InnoDB setting
+innodb_buffer_pool_size = 1GB
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+
+# kamipo TRADITIONAL
+sql_mode = TRADITIONAL,NO_AUTO_VALUE_ON_ZERO,ONLY_FULL_GROUP_BY
+
+# Max Connection
+max_connections=10000
