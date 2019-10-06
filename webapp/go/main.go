@@ -21,6 +21,7 @@ import (
 	goji "goji.io"
 	"goji.io/pat"
 	"golang.org/x/crypto/bcrypt"
+	_ "net/http/pprof"
 )
 
 const (
@@ -64,6 +65,52 @@ var (
 	dbx       *sqlx.DB
 	store     sessions.Store
 )
+
+var categoryMap = map[int]Category {
+	1: Category{ID: 1,  CategoryName: "ソファー", ParentID: 0, ParentCategoryName: ""},
+	2: Category{ID: 2, CategoryName: "一人掛けソファー", ParentID: 1, ParentCategoryName: "ソファー"},
+	3: Category{ID: 3, CategoryName: "二人掛けソファー", ParentID: 1, ParentCategoryName: "ソファー"},
+	4: Category{ID: 4, CategoryName: "コーナーソファー", ParentID: 1, ParentCategoryName: "ソファー"},
+	5: Category{ID: 5, CategoryName: "二段ソファー", ParentID: 1, ParentCategoryName: "ソファー"},
+	6: Category{ID: 6, CategoryName: "ソファーベッド", ParentID: 1, ParentCategoryName: "ソファー"},
+	10: Category{ID: 10, CategoryName: "家庭用チェア", ParentID: 0, ParentCategoryName: ""},
+	11: Category{ID: 11, CategoryName: "スツール", ParentID: 10, ParentCategoryName: "家庭用チェア"},
+	12: Category{ID: 12, CategoryName: "クッションスツール", ParentID: 10, ParentCategoryName: "家庭用チェア"},
+	13: Category{ID: 13, CategoryName: "ダイニングチェア", ParentID: 10, ParentCategoryName: "家庭用チェア"},
+	14: Category{ID: 14, CategoryName: "リビングチェア", ParentID: 10, ParentCategoryName: "家庭用チェア"},
+	15: Category{ID: 15, CategoryName: "カウンターチェア", ParentID: 10, ParentCategoryName: "家庭用チェア"},
+	20: Category{ID: 20, CategoryName: "キッズチェア", ParentID: 0, ParentCategoryName: ""},
+	21: Category{ID: 21, CategoryName: "学習チェア", ParentID: 20, ParentCategoryName: "キッズチェア"},
+	22: Category{ID: 22, CategoryName: "ベビーソファ", ParentID: 20, ParentCategoryName: "キッズチェア"},
+	23: Category{ID: 23, CategoryName: "キッズハイチェア", ParentID: 20, ParentCategoryName: "キッズチェア"},
+	24: Category{ID: 24, CategoryName: "テーブルチェア", ParentID: 20, ParentCategoryName: "キッズチェア"},
+	30: Category{ID: 30, CategoryName: "オフィスチェア", ParentID: 0, ParentCategoryName: ""},
+	31: Category{ID: 31, CategoryName: "デスクチェア", ParentID: 30, ParentCategoryName: "オフィスチェア"},
+	32: Category{ID: 32, CategoryName: "ビジネスチェア", ParentID: 30, ParentCategoryName: "オフィスチェア"},
+	33: Category{ID: 33, CategoryName: "回転チェア", ParentID: 30, ParentCategoryName: "オフィスチェア"},
+	34: Category{ID: 34, CategoryName: "リクライニングチェア", ParentID: 30, ParentCategoryName: "オフィスチェア"},
+	35: Category{ID: 35, CategoryName: "投擲用椅子", ParentID: 30, ParentCategoryName: "オフィスチェア"},
+	40: Category{ID: 40, CategoryName: "折りたたみ椅子", ParentID: 0, ParentCategoryName: ""},
+	41: Category{ID: 41, CategoryName: "パイプ椅子", ParentID: 40, ParentCategoryName: "折りたたみ椅子"},
+	42: Category{ID: 42, CategoryName: "木製折りたたみ椅子", ParentID: 40, ParentCategoryName: "折りたたみ椅子"},
+	43: Category{ID: 43, CategoryName: "キッチンチェア", ParentID: 40, ParentCategoryName: "折りたたみ椅子"},
+	44: Category{ID: 44, CategoryName: "アウトドアチェア", ParentID: 40, ParentCategoryName: "折りたたみ椅子"},
+	45: Category{ID: 45, CategoryName: "作業椅子", ParentID: 40, ParentCategoryName: "折りたたみ椅子"},
+	50: Category{ID: 50, CategoryName: "ベンチ", ParentID: 0, ParentCategoryName: ""},
+	51: Category{ID: 51, CategoryName: "一人掛けベンチ", ParentID: 50, ParentCategoryName: "ベンチ"},
+	52: Category{ID: 52, CategoryName: "二人掛けベンチ", ParentID: 50, ParentCategoryName: "ベンチ"},
+	53: Category{ID: 53, CategoryName: "アウトドア用ベンチ", ParentID: 50, ParentCategoryName: "ベンチ"},
+	54: Category{ID: 54, CategoryName: "収納付きベンチ", ParentID: 50, ParentCategoryName: "ベンチ"},
+	55: Category{ID: 55, CategoryName: "背もたれ付きベンチ", ParentID: 50, ParentCategoryName: "ベンチ"},
+	56: Category{ID: 56, CategoryName: "ベンチマーク", ParentID: 50, ParentCategoryName: "ベンチ"},
+	60: Category{ID: 60, CategoryName: "座椅子", ParentID: 0, ParentCategoryName: ""},
+	61: Category{ID: 61, CategoryName: "和風座椅子", ParentID: 60, ParentCategoryName: "座椅子"},
+	62: Category{ID: 62, CategoryName: "高座椅子", ParentID: 60, ParentCategoryName: "座椅子"},
+	63: Category{ID: 63, CategoryName: "ゲーミング座椅子", ParentID: 60, ParentCategoryName: "座椅子"},
+	64: Category{ID: 64, CategoryName: "ロッキングチェア", ParentID: 60, ParentCategoryName: "座椅子"},
+	65: Category{ID: 65, CategoryName: "座布団", ParentID: 60, ParentCategoryName: "座椅子"},
+	66: Category{ID: 66, CategoryName: "空気椅子", ParentID: 60, ParentCategoryName: "座椅子"},
+}
 
 type Config struct {
 	Name string `json:"name" db:"name"`
@@ -356,6 +403,10 @@ func main() {
 	mux.HandleFunc(pat.Get("/users/setting"), getIndex)
 	// Assets
 	mux.Handle(pat.Get("/*"), http.FileServer(http.Dir("../public")))
+	// [Note] これでpprof見れた
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	log.Fatal(http.ListenAndServe(":8000", mux))
 }
 
@@ -395,6 +446,7 @@ func getUser(r *http.Request) (user User, errCode int, errMsg string) {
 	return user, http.StatusOK, ""
 }
 
+// [Note] 重い関数 ユーザ情報取得
 func getUserSimpleByID(q sqlx.Queryer, userID int64) (userSimple UserSimple, err error) {
 	user := User{}
 	err = sqlx.Get(q, &user, "SELECT * FROM `users` WHERE `id` = ?", userID)
@@ -407,15 +459,21 @@ func getUserSimpleByID(q sqlx.Queryer, userID int64) (userSimple UserSimple, err
 	return userSimple, err
 }
 
+// [Note] SLOWクエリを見たところこのメソッドがたくさん呼ばれていて一番のボトルネック
 func getCategoryByID(q sqlx.Queryer, categoryID int) (category Category, err error) {
-	err = sqlx.Get(q, &category, "SELECT * FROM `categories` WHERE `id` = ?", categoryID)
-	if category.ParentID != 0 {
-		parentCategory, err := getCategoryByID(q, category.ParentID)
-		if err != nil {
-			return category, err
-		}
-		category.ParentCategoryName = parentCategory.CategoryName
-	}
+	// err = sqlx.Get(q, &category, "SELECT * FROM `categories` WHERE `id` = ?", categoryID)
+	//if category.ParentID != 0 { // 自分の親一個分を取ればいいのになぜか全部取りにいっている
+	//	parentCategory, err := getCategoryByID(q, category.ParentID)
+	//	if err != nil {
+	//		return category, err
+	//	}
+	//	category.ParentCategoryName = parentCategory.CategoryName
+	//}
+	c := categoryMap[categoryID]
+	category.ID = c.ID
+	category.CategoryName = c.CategoryName
+	category.ParentID = c.ParentID
+	category.ParentCategoryName = c.ParentCategoryName
 	return category, err
 }
 
