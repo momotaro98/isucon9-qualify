@@ -726,7 +726,11 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 	if itemID > 0 && createdAt > 0 {
 		// paging
 		inQuery, inArgs, err = sqlx.In(
-			`SELECT i.*, u.account_name, u.num_sell_items FROM items AS i JOIN users AS u ON i.seller_id=u.id WHERE i.status IN (?,?) AND i.category_id IN (?) AND (i.created_at < ?  OR (i.created_at <= ? AND i.id < ?)) ORDER BY i.created_at DESC, i.id DESC LIMIT ?`,
+		`SELECT i.*, u.account_name, u.num_sell_items
+				FROM items AS i JOIN users AS u ON i.seller_id=u.id
+				WHERE i.status IN (?,?) AND i.category_id IN (?)
+				AND (i.created_at < ?  OR (i.created_at <= ? AND i.id < ?))
+				ORDER BY i.created_at DESC, i.id DESC LIMIT ?`,
 			ItemStatusOnSale,
 			ItemStatusSoldOut,
 			categoryIDs,
@@ -734,6 +738,27 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 			time.Unix(createdAt, 0),
 			itemID,
 			ItemsPerPage+1,
+		// ↓これだと遅い。JOINを2回してるのが原因???
+		//`(SELECT i.*, u.account_name, u.num_sell_items
+		//		FROM items AS i JOIN users AS u ON i.seller_id=u.id
+		//		WHERE i.status IN (?,?) AND i.category_id IN (?)
+		//		AND i.created_at < ?
+		//		UNION
+		//		SELECT i.*, u.account_name, u.num_sell_items
+		//		FROM items AS i JOIN users AS u ON i.seller_id=u.id
+		//		WHERE i.status IN (?,?) AND i.category_id IN (?)
+		//		AND i.created_at <= ? AND i.id < ?)
+		//		ORDER BY created_at DESC, id DESC LIMIT ?`,
+		//	ItemStatusOnSale,
+		//	ItemStatusSoldOut,
+		//	categoryIDs,
+		//	time.Unix(createdAt, 0),
+		//	ItemStatusOnSale,
+		//	ItemStatusSoldOut,
+		//	categoryIDs,
+		//	time.Unix(createdAt, 0),
+		//	itemID,
+		//	ItemsPerPage+1,
 		)
 		if err != nil {
 			log.Print(err)
@@ -955,7 +980,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		// paging
 		err := tx.Select(&items,
 			`SELECT * FROM items WHERE seller_id = ? AND status IN (?,?,?,?,?) AND (created_at < ?  OR (created_at <= ? AND id < ?))
-					UNION ALL
+					UNION
 					SELECT * FROM items WHERE buyer_id = ? AND status IN (?,?,?,?,?) AND (created_at < ?  OR (created_at <= ? AND id < ?)) ORDER BY created_at DESC, id DESC LIMIT ?`,
 			user.ID,
 			ItemStatusOnSale,
@@ -988,7 +1013,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		err := tx.Select(&items,
 			// `SELECT * FROM items WHERE seller_id = ? AND status IN (?,?,?,?,?) ORDER BY created_at DESC, id DESC LIMIT ?`,
 			`SELECT * FROM items WHERE seller_id = ? AND status IN (?,?,?,?,?) 
-					UNION ALL
+					UNION
 					SELECT * FROM items WHERE buyer_id = ? AND status IN (?,?,?,?,?) ORDER BY created_at DESC, id DESC LIMIT ?`,
 			user.ID,
 			ItemStatusOnSale,
