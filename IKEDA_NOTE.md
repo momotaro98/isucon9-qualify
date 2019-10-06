@@ -42,6 +42,8 @@ $ ./init.sh
 ```
 $ cd isucon9-qualify/conf.d
 $ docker exec -it mysql /bin/bash
+# cd /tmp/
+# echo '' > mysql-slow.sql
 ```
 
 ```
