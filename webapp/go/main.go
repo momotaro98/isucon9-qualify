@@ -2439,4 +2439,5 @@ func outputErrorMsg(w http.ResponseWriter, status int, msg string) {
 
 func getImageURL(imageName string) string {
 	return fmt.Sprintf("/upload/%s", imageName)
+	//return fmt.Sprintf("http://localhost:8889/upload/%s", imageName) // [Note] アプリでの画像表示はOKだけどベンチマークで落ちる。
 }
