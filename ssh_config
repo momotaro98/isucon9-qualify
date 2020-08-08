@@ -1,0 +1,4 @@
+Host giwa-ec2
+  HostName 52.199.112.104
+  IdentityFile ~/.ssh/giwa-ec2.pem
+  User ubuntu
