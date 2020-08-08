@@ -2,6 +2,13 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
+echo 'Building Go'
+cd $DIR/webapp/go/
+go build -o isucari
+cp isucari /home/isucon/isucari/webapp/go/
+cd $DIR
+echo 'Built!'
+
 sudo cp $DIR/systemd/* /etc/systemd/system/
 sudo systemctl daemon-reload
 
