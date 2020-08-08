@@ -1,3 +1,27 @@
+# momotaro98 My Note
+
+## systemd に慣れよう
+
+```
+root@ip-172-31-39-185:/home/isucon/isucari# cat /etc/systemd/system/isucari.golang.service
+[Unit]
+Description = isucon9 qualifier main application in golang
+
+[Service]
+WorkingDirectory=/home/isucon/isucari/webapp/go/
+EnvironmentFile=/home/isucon/env.sh
+
+ExecStart = /home/isucon/isucari/webapp/go/isucari
+
+Restart   = always
+Type      = simple
+User      = isucon
+Group     = isucon
+
+[Install]
+WantedBy = multi-user.target
+```
+
 # isucon9-qualify
 
 ## ディレクトリ構成
