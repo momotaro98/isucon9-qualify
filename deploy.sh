@@ -2,7 +2,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
-sudo cp "$DIR/systemd/*" /etc/systemd/system/
+sudo cp $DIR/systemd/* /etc/systemd/system/
 sudo systemctl daemon-reload
 
 echo 'Updating config file...'
