@@ -2,12 +2,15 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
-echo 'Building Go'
+
+echo 'Restarting Go...'
 cd $DIR/webapp/go/
 go build -o isucari
+sudo systemctl stop isucari.golang.service
 cp isucari /home/isucon/isucari/webapp/go/
 cd $DIR
-echo 'Built!'
+sudo systemctl restart isucari.golang.service
+echo 'Restarted!'
 
 sudo cp $DIR/systemd/* /etc/systemd/system/
 sudo systemctl daemon-reload
@@ -23,7 +26,6 @@ echo 'Restarting services...'
 # Save cache
 # sudo systemctl restart mysql.service
 sudo systemctl restart nginx.service
-sudo systemctl restart isucari.golang.service
 echo 'Restarted!'
 
 echo 'Rotating files'
