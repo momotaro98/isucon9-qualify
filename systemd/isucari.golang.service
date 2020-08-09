@@ -4,6 +4,7 @@ Description = isucon9 qualifier main application in golang
 [Service]
 WorkingDirectory=/home/isucon/isucari/webapp/go/
 EnvironmentFile=/home/isucon/env.sh
+EnvironmentFile=/home/isucon/env.secret.sh
 
 ExecStart = /home/isucon/isucari/webapp/go/isucari
 
