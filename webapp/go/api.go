@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 )
@@ -50,10 +51,19 @@ type APIShipmentStatusReq struct {
 	ReserveID string `json:"reserve_id"`
 }
 
-func APIPaymentToken(paymentURL string, param *APIPaymentServiceTokenReq) (*APIPaymentServiceTokenRes, error) {
+func RNewRequest(r *http.Request, method, url string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(r.Context())
+	return req, nil
+}
+
+func APIPaymentToken(r *http.Request, paymentURL string, param *APIPaymentServiceTokenReq) (*APIPaymentServiceTokenRes, error) {
 	b, _ := json.Marshal(param)
 
-	req, err := http.NewRequest(http.MethodPost, paymentURL+"/token", bytes.NewBuffer(b))
+	req, err := RNewRequest(r, http.MethodPost, paymentURL+"/token", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
@@ -84,10 +94,10 @@ func APIPaymentToken(paymentURL string, param *APIPaymentServiceTokenReq) (*APIP
 	return pstr, nil
 }
 
-func APIShipmentCreate(shipmentURL string, param *APIShipmentCreateReq) (*APIShipmentCreateRes, error) {
+func APIShipmentCreate(r *http.Request, shipmentURL string, param *APIShipmentCreateReq) (*APIShipmentCreateRes, error) {
 	b, _ := json.Marshal(param)
 
-	req, err := http.NewRequest(http.MethodPost, shipmentURL+"/create", bytes.NewBuffer(b))
+	req, err := RNewRequest(r, http.MethodPost, shipmentURL+"/create", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
@@ -119,10 +129,10 @@ func APIShipmentCreate(shipmentURL string, param *APIShipmentCreateReq) (*APIShi
 	return scr, nil
 }
 
-func APIShipmentRequest(shipmentURL string, param *APIShipmentRequestReq) ([]byte, error) {
+func APIShipmentRequest(r *http.Request, shipmentURL string, param *APIShipmentRequestReq) ([]byte, error) {
 	b, _ := json.Marshal(param)
 
-	req, err := http.NewRequest(http.MethodPost, shipmentURL+"/request", bytes.NewBuffer(b))
+	req, err := RNewRequest(r, http.MethodPost, shipmentURL+"/request", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
@@ -148,10 +158,10 @@ func APIShipmentRequest(shipmentURL string, param *APIShipmentRequestReq) ([]byt
 	return ioutil.ReadAll(res.Body)
 }
 
-func APIShipmentStatus(shipmentURL string, param *APIShipmentStatusReq) (*APIShipmentStatusRes, error) {
+func APIShipmentStatus(r *http.Request, shipmentURL string, param *APIShipmentStatusReq) (*APIShipmentStatusRes, error) {
 	b, _ := json.Marshal(param)
 
-	req, err := http.NewRequest(http.MethodGet, shipmentURL+"/status", bytes.NewBuffer(b))
+	req, err := RNewRequest(r, http.MethodGet, shipmentURL+"/status", bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
