@@ -29,5 +29,6 @@ sudo systemctl restart nginx.service
 echo 'Restarted!'
 
 echo 'Rotating files'
-sudo bash -c 'cp /var/log/nginx/access.log /var/log/nginx/access.log.$(date +%s) && echo > /var/log/nginx/access.log; echo > /tmp/isu-query.log; echo > /tmp/isu-rack.log; test -d /tmp/stackprof && rm -f /tmp/stackprof/*; echo > /var/lib/mysql/mysql-slow.log; chown isucon:isucon /tmp/isu*.log'
+sudo bash -c 'cp /var/log/nginx/access.log /var/log/nginx/access.log.$(date +%s) && echo > /var/log/nginx/access.log'
+sudo bash -c 'cp /var/lib/mysql/mysql-slow.log /var/lib/mysql/mysql-slow.log.$(date +%s) && echo > /var/lib/mysql/mysql-slow.log'
 echo 'Rotated!'
