@@ -1,1 +1,4 @@
-*~
+.env
+*.log
+*.swp
+webapp/go/.idea/
