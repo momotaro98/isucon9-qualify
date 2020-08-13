@@ -615,10 +615,18 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	sellers := make([]int64, len(items))
+	for i := range items {
+		sellers[i] = items[i].SellerID
+	}
+	userSimples, _ := getUserSimpleByIDs(dbx, sellers)
+
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
-		seller, err := getUserSimpleByID(dbx, item.SellerID)
-		if err != nil {
+		//seller, err := getUserSimpleByID(dbx, item.SellerID)
+		seller, ok := userSimples[item.SellerID]
+		if !ok {
+			//if err != nil {
 			outputErrorMsg(w, http.StatusNotFound, "seller not found")
 			return
 		}
@@ -1000,10 +1008,18 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	users := make([]int64, 0, len(items)*2)
+	for _, item := range items {
+		users = append(users, item.SellerID, item.BuyerID)
+	}
+	userSimples, _ := getUserSimpleByIDs(dbx, users)
+
 	itemDetails := []ItemDetail{}
 	for _, item := range items {
-		seller, err := getUserSimpleByID(tx, item.SellerID)
-		if err != nil {
+		//seller, err := getUserSimpleByID(tx, item.SellerID)
+		seller, ok := userSimples[item.SellerID]
+		if !ok {
+			//if err != nil {
 			outputErrorMsg(w, http.StatusNotFound, "seller not found")
 			tx.Rollback()
 			return
@@ -1035,8 +1051,10 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if item.BuyerID != 0 {
-			buyer, err := getUserSimpleByID(tx, item.BuyerID)
-			if err != nil {
+			//buyer, err := getUserSimpleByID(tx, item.BuyerID)
+			buyer, ok := userSimples[item.BuyerID]
+			if !ok {
+				//if err != nil {
 				outputErrorMsg(w, http.StatusNotFound, "buyer not found")
 				tx.Rollback()
 				return
