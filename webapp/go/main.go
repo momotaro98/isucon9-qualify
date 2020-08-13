@@ -84,9 +84,9 @@ type User struct {
 }
 
 type UserSimple struct {
-	ID           int64  `json:"id"`
-	AccountName  string `json:"account_name"`
-	NumSellItems int    `json:"num_sell_items"`
+	ID           int64  `json:"id" db:"id"`
+	AccountName  string `json:"account_name" db:"account_name"`
+	NumSellItems int    `json:"num_sell_items" db:"num_sell_items"`
 }
 
 type Item struct {
@@ -656,6 +656,30 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(rni)
 }
 
+func getUserSimpleByIDs(q sqlx.Queryer, userIDs []int64) (userSimples map[int64]UserSimple, err error) {
+	userSimples = make(map[int64]UserSimple)
+	inQuery, inArgs, err := sqlx.In("SELECT id, account_name, num_sell_items FROM `users` WHERE `id` IN (?)", userIDs)
+	log.Printf("inQuery: %s, inArgs: %v", inQuery, inArgs)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := q.Queryx(inQuery, inArgs...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var user UserSimple
+		err = rows.StructScan(&user)
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("user: %v", user)
+		userSimples[user.ID] = user
+	}
+	return userSimples, nil
+}
+
 func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 	rootCategoryIDStr := pat.Param(r, "root_category_id")
 	rootCategoryID, err := strconv.Atoi(rootCategoryIDStr)
@@ -743,10 +767,16 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sellers := make([]int64, len(items))
+	for i := range items {
+		sellers[i] = items[i].SellerID
+	}
+	userSimples, _ := getUserSimpleByIDs(dbx, sellers)
+
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
-		seller, err := getUserSimpleByID(dbx, item.SellerID)
-		if err != nil {
+		seller, ok := userSimples[item.SellerID]
+		if !ok {
 			outputErrorMsg(w, http.StatusNotFound, "seller not found")
 			return
 		}
