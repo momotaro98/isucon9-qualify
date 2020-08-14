@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -667,7 +668,7 @@ func getNewItems(w http.ResponseWriter, r *http.Request) {
 func getUserSimpleByIDs(q sqlx.Queryer, userIDs []int64) (userSimples map[int64]UserSimple, err error) {
 	userSimples = make(map[int64]UserSimple)
 	inQuery, inArgs, err := sqlx.In("SELECT id, account_name, num_sell_items FROM `users` WHERE `id` IN (?)", userIDs)
-	log.Printf("inQuery: %s, inArgs: %v", inQuery, inArgs)
+	//log.Printf("inQuery: %s, inArgs: %v", inQuery, inArgs)
 	if err != nil {
 		return nil, err
 	}
@@ -2276,6 +2277,8 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func conCompareHashAndPassword(stored, input string) (bool, error) {
+	stored = url.QueryEscape(stored)
+	input = url.QueryEscape(input)
 	url := fmt.Sprintf("http://isu01:5000/comhash?stored=%s&input=%s", stored, input)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
