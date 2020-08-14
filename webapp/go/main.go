@@ -2275,6 +2275,36 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(ress)
 }
 
+func conCompareHashAndPassword(stored, input string) (bool, error) {
+	url := fmt.Sprintf("http://isu01:5000/comhash?stored=%s&input=%s", stored, input)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return false, err
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("err in DefaultClient in conCompareHashAndPassword")
+		return false, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		log.Printf("status code: %d; body: %s\n", res.StatusCode, res.Body)
+		return false, fmt.Errorf("status code: %d; body: %s", res.StatusCode, res.Body)
+	}
+
+	type Response struct {
+		OK bool `json:"ok"`
+	}
+	ress := &Response{}
+	err = json.NewDecoder(res.Body).Decode(ress)
+	if err != nil {
+		log.Printf("decode failed in conCompareHashAndPassword")
+		return false, err
+	}
+	return ress.OK, nil
+}
+
 func postLogin(w http.ResponseWriter, r *http.Request) {
 	rl := reqLogin{}
 	err := json.NewDecoder(r.Body).Decode(&rl)
@@ -2305,11 +2335,17 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
-	if err == bcrypt.ErrMismatchedHashAndPassword {
+	ok, err := conCompareHashAndPassword(string(u.HashedPassword), password)
+	if !ok {
+		log.Println("ikeda compare hash replacement is failing???")
 		outputErrorMsg(w, http.StatusUnauthorized, "アカウント名かパスワードが間違えています")
 		return
 	}
+	//err = bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
+	//if err == bcrypt.ErrMismatchedHashAndPassword {
+	//	outputErrorMsg(w, http.StatusUnauthorized, "アカウント名かパスワードが間違えています")
+	//	return
+	//}
 	if err != nil {
 		log.Print(err)
 
