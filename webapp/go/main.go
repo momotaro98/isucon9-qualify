@@ -378,6 +378,8 @@ func main() {
 
 	mux := goji.NewMux()
 
+	mux.Use(nrt)
+
 	// API
 	mux.HandleFunc(pat.Post("/initialize"), postInitialize)
 	mux.HandleFunc(pat.Get("/new_items.json"), getNewItems)
@@ -462,7 +464,6 @@ func getUser(r *http.Request) (user User, errCode int, errMsg string) {
 }
 
 func getUserSimpleByID(q sqlx.Queryer, userID int64) (userSimple UserSimple, err error) {
-	// TODO: Add cache strategy
 	user := User{}
 	err = sqlx.Get(q, &user, "SELECT * FROM `users` WHERE `id` = ?", userID)
 	if err != nil {
@@ -2127,7 +2128,6 @@ func postSell(w http.ResponseWriter, r *http.Request) {
 		now,
 		seller.ID,
 	)
-	// TODO: Add cache strategy
 	if err != nil {
 		log.Print(err)
 
