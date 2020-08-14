@@ -689,6 +689,16 @@ func getUserSimpleByIDs(q sqlx.Queryer, userIDs []int64) (userSimples map[int64]
 	return userSimples, nil
 }
 
+var mChildCategories = map[int][]int{
+	1:  {2, 3, 4, 5, 6},
+	10: {11, 12, 13, 14, 15},
+	20: {21, 22, 23, 24},
+	30: {31, 32, 33, 34, 35},
+	40: {41, 42, 43, 44, 45},
+	50: {51, 52, 53, 54, 55, 56},
+	60: {61, 62, 63, 64, 65, 66},
+}
+
 func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 	rootCategoryIDStr := pat.Param(r, "root_category_id")
 	rootCategoryID, err := strconv.Atoi(rootCategoryIDStr)
@@ -703,9 +713,11 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var categoryIDs []int
-	err = dbx.Select(&categoryIDs, "SELECT id FROM `categories` WHERE parent_id=?", rootCategory.ID)
-	if err != nil {
+	//var categoryIDs []int
+	//err = dbx.Select(&categoryIDs, "SELECT id FROM `categories` WHERE parent_id=?", rootCategory.ID)
+	categoryIDs, ok := mChildCategories[rootCategory.ID]
+	if !ok {
+		//if err != nil {
 		log.Print(err)
 		outputErrorMsg(w, http.StatusInternalServerError, "db error")
 		return
