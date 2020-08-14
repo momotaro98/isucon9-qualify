@@ -683,7 +683,7 @@ func getUserSimpleByIDs(q sqlx.Queryer, userIDs []int64) (userSimples map[int64]
 		if err != nil {
 			return nil, err
 		}
-		log.Printf("user: %v", user)
+		//log.Printf("user: %v", user)
 		userSimples[user.ID] = user
 	}
 	return userSimples, nil
