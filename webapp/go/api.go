@@ -60,6 +60,11 @@ func RNewRequest(r *http.Request, method, url string, body io.Reader) (*http.Req
 	return req, nil
 }
 
+func Do(req *http.Request) (*http.Response, error) {
+	// return http.DefaultClient.Do(req) // [to revert]
+	return nrClient.Do(req)
+}
+
 func APIPaymentToken(r *http.Request, paymentURL string, param *APIPaymentServiceTokenReq) (*APIPaymentServiceTokenRes, error) {
 	b, _ := json.Marshal(param)
 
@@ -71,7 +76,7 @@ func APIPaymentToken(r *http.Request, paymentURL string, param *APIPaymentServic
 	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("Content-Type", "application/json")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +111,7 @@ func APIShipmentCreate(r *http.Request, shipmentURL string, param *APIShipmentCr
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", IsucariAPIToken)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +146,7 @@ func APIShipmentRequest(r *http.Request, shipmentURL string, param *APIShipmentR
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", IsucariAPIToken)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +175,7 @@ func APIShipmentStatus(r *http.Request, shipmentURL string, param *APIShipmentSt
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", IsucariAPIToken)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := Do(req)
 	if err != nil {
 		return nil, err
 	}

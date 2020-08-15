@@ -9,10 +9,10 @@ import (
 )
 
 var (
-	app    *newrelic.Application
-	client = &http.Client{
+	app      *newrelic.Application
+	nrClient = &http.Client{
 		Transport: newrelic.NewRoundTripper(nil),
-		Timeout:   time.Duration(10) * time.Second,
+		Timeout:   time.Duration(20) * time.Second,
 	}
 )
 
