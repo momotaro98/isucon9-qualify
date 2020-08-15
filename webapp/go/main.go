@@ -2343,17 +2343,17 @@ func postLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, err := conCompareHashAndPassword(string(u.HashedPassword), password)
-	if !ok {
-		log.Println("ikeda compare hash replacement is failing???")
-		outputErrorMsg(w, http.StatusUnauthorized, "アカウント名かパスワードが間違えています")
-		return
-	}
-	//err = bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
-	//if err == bcrypt.ErrMismatchedHashAndPassword {
+	//ok, err := conCompareHashAndPassword(string(u.HashedPassword), password)
+	//if !ok {
+	//	log.Println("ikeda compare hash replacement is failing???")
 	//	outputErrorMsg(w, http.StatusUnauthorized, "アカウント名かパスワードが間違えています")
 	//	return
 	//}
+	err = bcrypt.CompareHashAndPassword(u.HashedPassword, []byte(password))
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		outputErrorMsg(w, http.StatusUnauthorized, "アカウント名かパスワードが間違えています")
+		return
+	}
 	if err != nil {
 		log.Print(err)
 
